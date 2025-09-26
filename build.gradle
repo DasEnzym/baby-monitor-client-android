@@ -1,35 +1,22 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-buildscript {
-
-    ext {
-        kotlinVersion = '1.3.61'
-    }
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-        mavenLocal()
-        maven { url "https://plugins.gradle.org/m2/" }
-    }
-
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.5.3'
-        classpath "com.getkeepsafe.dexcount:dexcount-gradle-plugin:0.8.6"
-        classpath 'com.vanniktech:gradle-android-junit-jacoco-plugin:0.15.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath 'com.github.ben-manes:gradle-versions-plugin:0.25.0'
-        classpath 'com.google.gms:google-services:4.3.3'
-        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'
-        classpath 'com.google.firebase:perf-plugin:1.3.1'
-    }
+plugins {
+    id "com.android.application" version "8.4.2" apply false
+    id "org.jetbrains.kotlin.android" version "1.9.23" apply false
+    id "org.jetbrains.kotlin.kapt" version "1.9.23" apply false
+    id "com.github.ben-manes.versions" version "0.51.0" apply false
+    id "com.getkeepsafe.dexcount" version "4.0.0" apply false
+    id "com.vanniktech.android.junit.jacoco" version "0.17.0" apply false
+    id "com.google.gms.google-services" version "4.4.1" apply false
+    id "com.google.firebase.crashlytics" version "2.9.9" apply false
+    id "com.google.firebase.firebase-perf" version "1.4.2" apply false
+    id "io.gitlab.arturbosch.detekt" version "1.23.6"
 }
 
-plugins {
-    id "io.gitlab.arturbosch.detekt" version "1.1.1"
+ext {
+    kotlinVersion = '1.9.23'
 }
 
 dependencies {
-    detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:1.1.1"
+    detektPlugins "io.gitlab.arturbosch.detekt:detekt-formatting:1.23.6"
 }
 
 tasks.register('detektAll', io.gitlab.arturbosch.detekt.Detekt) {
@@ -42,16 +29,15 @@ tasks.register('detektAll', io.gitlab.arturbosch.detekt.Detekt) {
     exclude("**/resources/**")
     exclude("**/build/**")
     reports {
-        xml.enabled = true
-        html.enabled = false
-        txt.enabled = false
+        xml.required.set(true)
+        html.required.set(false)
+        txt.required.set(false)
     }
 }
 
 allprojects {
     repositories {
         google()
-        jcenter()
         mavenCentral()
         maven { url "https://jitpack.io" }
         maven { url "https://clojars.org/repo/" }

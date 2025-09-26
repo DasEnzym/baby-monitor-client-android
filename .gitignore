@@ -126,3 +126,6 @@ Temporary Items
 
 # Linux trash folder which might appear on any partition or disk
 .Trash-*
+
+# Gradle wrapper jar generated from base64
+gradle/wrapper/gradle-wrapper.jar
