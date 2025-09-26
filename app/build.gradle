@@ -1,13 +1,12 @@
-apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'com.github.ben-manes.versions'
-apply plugin: 'com.getkeepsafe.dexcount'
-apply plugin: 'com.vanniktech.android.junit.jacoco'
-apply plugin: 'io.fabric'
-apply plugin: 'com.google.firebase.firebase-perf'
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'org.jetbrains.kotlin.kapt'
+    id 'com.github.ben-manes.versions'
+    id 'com.getkeepsafe.dexcount'
+    id 'com.vanniktech.android.junit.jacoco'
+    id 'com.google.firebase.firebase-perf'
+}
 
 ext {
 
@@ -17,12 +16,12 @@ ext {
 }
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    namespace "co.netguru.baby.monitor.client"
+    compileSdk 34
     defaultConfig {
         applicationId "com.netguru.babyguard"
-        minSdkVersion 21
-        targetSdkVersion 29
+        minSdk 21
+        targetSdk 34
         versionCode isBitrise ? Integer.parseInt(bitrise.io.buildNumber) : 1
         versionName '0.5.0'
         vectorDrawables.useSupportLibrary = true
@@ -36,10 +35,10 @@ android {
         debug {
             versionNameSuffix "-DEBUG"
             applicationIdSuffix ".debug"
-            testCoverageEnabled true
-            debuggable true
-            minifyEnabled false
-            shrinkResources false
+            enableUnitTestCoverage true
+            isDebuggable = true
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles getDefaultProguardFile('proguard-android.txt'),
                     'proguard-rules.pro', 'proguard-instant-run.pro', 'proguard-rules-test.pro'
         }
@@ -47,18 +46,18 @@ android {
             signingConfig signingConfigs.debug
             versionNameSuffix "-PREPROD"
             applicationIdSuffix ".preprod"
-            debuggable true
-            minifyEnabled true
-            shrinkResources true
-            zipAlignEnabled true
+            isDebuggable = true
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isZipAlignEnabled = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
                     'proguard-rules-release-preprod.pro'
         }
         release {
-            debuggable false
-            minifyEnabled true
-            shrinkResources true
-            zipAlignEnabled true
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            isZipAlignEnabled = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'),
                     'proguard-rules-release.pro'
         }
@@ -80,9 +79,11 @@ android {
         }
     }
     packagingOptions {
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
+        resources {
+            excludes += ['META-INF/services/javax.annotation.processing.Processor',
+                          'META-INF/LICENSE.txt',
+                          'META-INF/NOTICE.txt']
+        }
     }
     sourceSets.all {
         it.java.srcDir "src/$it.name/kotlin"
@@ -109,27 +110,23 @@ android {
                     '**/*Lambda.class',
                     '**/*Lambda*.class']
     }
-    lintOptions {
-        abortOnError false
+    lint {
+        abortOnError = false
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
-        jvmTarget = 1.8
+        jvmTarget = '17'
     }
 }
 
 kapt {
     correctErrorTypes = true
-}
-
-androidExtensions {
-    experimental = true
 }
 
 configurations {
@@ -146,6 +143,8 @@ configurations {
         }
     }
 }
+
+apply plugin: 'com.google.gms.google-services'
 
 dependencies {
     //Kotlin
