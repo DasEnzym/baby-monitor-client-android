@@ -22,6 +22,7 @@ import co.netguru.baby.monitor.client.common.extensions.allPermissionsGranted
 import co.netguru.baby.monitor.client.common.extensions.bindService
 import co.netguru.baby.monitor.client.common.extensions.observeNonNull
 import co.netguru.baby.monitor.client.common.extensions.showSnackbarMessage
+import co.netguru.baby.monitor.client.databinding.FragmentChildMonitorBinding
 import co.netguru.baby.monitor.client.data.communication.websocket.ClientConnectionStatus
 import co.netguru.baby.monitor.client.feature.analytics.Screen
 import co.netguru.baby.monitor.client.feature.batterylevel.LowBatteryReceiver
@@ -31,7 +32,6 @@ import co.netguru.baby.monitor.client.feature.communication.webrtc.server.WebRtc
 import co.netguru.baby.monitor.client.feature.debug.DebugModule
 import co.netguru.baby.monitor.client.feature.voiceAnalysis.VoiceAnalysisService
 import co.netguru.baby.monitor.client.feature.voiceAnalysis.VoiceAnalysisService.VoiceAnalysisBinder
-import kotlinx.android.synthetic.main.fragment_child_monitor.*
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -57,6 +57,8 @@ class ChildMonitorFragment : BaseFragment(), ServiceConnection {
 
     @Inject
     internal lateinit var lowBatteryReceiver: LowBatteryReceiver
+    private var _binding: FragmentChildMonitorBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,9 +68,10 @@ class ChildMonitorFragment : BaseFragment(), ServiceConnection {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentChildMonitorBinding.bind(view)
         setupView()
         setupObservers()
-        webRtcServiceBinder?.addSurfaceView(surfaceView)
+        webRtcServiceBinder?.addSurfaceView(binding.surfaceView)
     }
 
     override fun onResume() {
@@ -88,9 +91,10 @@ class ChildMonitorFragment : BaseFragment(), ServiceConnection {
     }
 
     override fun onDestroyView() {
-        surfaceView.release()
-        debugView.clearDebugStateObservable()
+        binding.surfaceView.release()
+        binding.debugView.clearDebugStateObservable()
         super.onDestroyView()
+        _binding = null
     }
 
     override fun onDestroy() {
@@ -133,14 +137,14 @@ class ChildMonitorFragment : BaseFragment(), ServiceConnection {
     }
 
     private fun setupView() {
-        nightModeToggleBtn.setOnClickListener {
+        binding.nightModeToggleBtn.setOnClickListener {
             childMonitorViewModel.switchNightMode()
         }
-        settingsIbtn.setOnClickListener {
+        binding.settingsIbtn.setOnClickListener {
             serverViewModel.toggleDrawer(true)
         }
-        videoPreviewButton.setOnClickListener { serverViewModel.toggleVideoPreview(true) }
-        debugView.apply {
+        binding.videoPreviewButton.setOnClickListener { serverViewModel.toggleVideoPreview(true) }
+        binding.debugView.apply {
             setDebugStateObservable(debugModule.debugStateObservable())
             isVisible = BuildConfig.DEBUG
         }
@@ -155,7 +159,7 @@ class ChildMonitorFragment : BaseFragment(), ServiceConnection {
         childMonitorViewModel.nightModeStatus.observe(
             viewLifecycleOwner,
             Observer { isNightModeEnabled ->
-                nightModeGroup.isVisible = isNightModeEnabled
+                binding.nightModeGroup.isVisible = isNightModeEnabled
             })
     }
 
@@ -178,8 +182,8 @@ class ChildMonitorFragment : BaseFragment(), ServiceConnection {
 
     private fun serverViewModelObservers() {
         serverViewModel.babyNameStatus.observeNonNull(viewLifecycleOwner) { name ->
-            babyName.text = name
-            babyName.visibility =
+            binding.babyName.text = name
+            binding.babyName.visibility =
                 if (name.isBlank()) {
                     View.GONE
                 } else {
@@ -195,7 +199,7 @@ class ChildMonitorFragment : BaseFragment(), ServiceConnection {
         }
 
         serverViewModel.timer.observe(viewLifecycleOwner, Observer { secondsLeft ->
-            timer.text = if (secondsLeft != null && secondsLeft < VIDEO_PREVIEW_MAX_TIME) {
+            binding.timer.text = if (secondsLeft != null && secondsLeft < VIDEO_PREVIEW_MAX_TIME) {
                 getString(
                     R.string.message_disabling_video_preview_soon,
                     "0:%02d".format(secondsLeft)
@@ -223,9 +227,9 @@ class ChildMonitorFragment : BaseFragment(), ServiceConnection {
             Timber.d("Client status: $status.")
             when (status) {
                 ClientConnectionStatus.CLIENT_CONNECTED ->
-                    pulsatingView.start()
+                    binding.pulsatingView.start()
                 ClientConnectionStatus.EMPTY ->
-                    pulsatingView.stop()
+                    binding.pulsatingView.stop()
             }
         })
 
@@ -252,17 +256,17 @@ class ChildMonitorFragment : BaseFragment(), ServiceConnection {
 
     private fun showVideoPreview() {
         Timber.i("showVideoPreview")
-        videoPreviewGroup.isVisible = true
-        videoPreviewTogglingGroup.isVisible = false
+        binding.videoPreviewGroup.isVisible = true
+        binding.videoPreviewTogglingGroup.isVisible = false
         serverViewModel.resetTimer()
-        surfaceView.disableFpsReduction()
+        binding.surfaceView.disableFpsReduction()
     }
 
     private fun hideVideoPreview() {
         Timber.i("hideVideoPreview")
-        videoPreviewGroup.isVisible = false
-        videoPreviewTogglingGroup.isVisible = true
-        surfaceView.pauseVideo()
+        binding.videoPreviewGroup.isVisible = false
+        binding.videoPreviewTogglingGroup.isVisible = true
+        binding.surfaceView.pauseVideo()
     }
 
     private fun registerNsdService() {
@@ -291,7 +295,7 @@ class ChildMonitorFragment : BaseFragment(), ServiceConnection {
         serverViewModel.handleRtcServerConnectionState(webRtcServiceBinder)
         this.webRtcServiceBinder = webRtcServiceBinder
         serverViewModel.toggleVideoPreview(true)
-        webRtcServiceBinder.addSurfaceView(surfaceView)
+        webRtcServiceBinder.addSurfaceView(binding.surfaceView)
     }
 
     companion object {

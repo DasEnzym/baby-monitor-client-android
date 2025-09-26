@@ -3,13 +3,13 @@ package co.netguru.baby.monitor.client.common.view
 import android.content.Context
 import android.graphics.drawable.AnimatedVectorDrawable
 import android.util.AttributeSet
-import android.view.View
+import android.view.LayoutInflater
 import android.widget.RelativeLayout
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.view.isVisible
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.feature.settings.ChangeState
-import kotlinx.android.synthetic.main.seek_bar_progress.view.*
+import co.netguru.baby.monitor.client.databinding.SeekBarProgressBinding
 
 class SeekBarProgress : RelativeLayout {
     constructor(context: Context) : super(context)
@@ -20,9 +20,7 @@ class SeekBarProgress : RelativeLayout {
         attributeSetId
     )
 
-    init {
-        View.inflate(context, R.layout.seek_bar_progress, this)
-    }
+    private val binding = SeekBarProgressBinding.inflate(LayoutInflater.from(context), this)
 
     fun setState(valueState: Pair<ChangeState?, Int?>) {
         val (changeState, value) = valueState
@@ -33,16 +31,16 @@ class SeekBarProgress : RelativeLayout {
             ChangeState.InProgress -> Unit
             null -> {
                 value?.let {
-                    progressText.text = it.toString()
+                    binding.progressText.text = it.toString()
                 }
             }
         }
     }
 
     private fun resolveVisibility(changeState: ChangeState?) {
-        progressText.isVisible = changeState == null
-        progress.isVisible = changeState == ChangeState.InProgress
-        progressIcon.isVisible =
+        binding.progressText.isVisible = changeState == null
+        binding.progress.isVisible = changeState == ChangeState.InProgress
+        binding.progressIcon.isVisible =
             changeState == ChangeState.Completed || changeState == ChangeState.Failed
     }
 
@@ -52,7 +50,7 @@ class SeekBarProgress : RelativeLayout {
             if (success) R.drawable.animated_done else R.drawable.animated_fail
         ) as? AnimatedVectorDrawable
         animatedVectorDrawable?.let {
-            progressIcon.setImageDrawable(it)
+            binding.progressIcon.setImageDrawable(it)
             it.start()
         }
     }

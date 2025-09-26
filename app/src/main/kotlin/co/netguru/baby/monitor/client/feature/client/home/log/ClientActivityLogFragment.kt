@@ -10,9 +10,9 @@ import co.netguru.baby.monitor.client.common.extensions.observeNonNull
 import co.netguru.baby.monitor.client.common.extensions.setVisible
 import co.netguru.baby.monitor.client.common.view.StickyHeaderDecorator
 import co.netguru.baby.monitor.client.data.client.home.ToolbarState
+import co.netguru.baby.monitor.client.databinding.FragmentClientActivityLogBinding
 import co.netguru.baby.monitor.client.feature.analytics.Screen
 import co.netguru.baby.monitor.client.feature.client.home.ClientHomeViewModel
-import kotlinx.android.synthetic.main.fragment_client_activity_log.*
 import javax.inject.Inject
 
 class ClientActivityLogFragment : BaseFragment() {
@@ -26,6 +26,8 @@ class ClientActivityLogFragment : BaseFragment() {
     private val viewModel by lazy {
         ViewModelProviders.of(requireActivity(), factory)[ClientHomeViewModel::class.java]
     }
+    private var _binding: FragmentClientActivityLogBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,24 +36,27 @@ class ClientActivityLogFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentClientActivityLogBinding.bind(view)
         setupRecyclerView()
 
-        viewModel.logData.observeNonNull(this, { activities ->
+        viewModel.logData.observeNonNull(viewLifecycleOwner, { activities ->
             if (activities.isNotEmpty()) {
                 logAdapter.setupList(activities)
             }
-            clientActivityLogRv.setVisible(activities.isNotEmpty())
-            clientActivityLogEndTv.setVisible(activities.isEmpty())
+            binding.clientActivityLogRv.setVisible(activities.isNotEmpty())
+            binding.clientActivityLogEndTv.setVisible(activities.isEmpty())
         })
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         viewModel.toolbarState.postValue(ToolbarState.DEFAULT)
+        binding.clientActivityLogRv.adapter = null
+        _binding = null
     }
 
     private fun setupRecyclerView() {
-        with(clientActivityLogRv) {
+        with(binding.clientActivityLogRv) {
             adapter = logAdapter
             addItemDecoration(StickyHeaderDecorator(logAdapter))
         }

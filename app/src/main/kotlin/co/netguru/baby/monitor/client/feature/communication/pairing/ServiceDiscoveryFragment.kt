@@ -17,6 +17,7 @@ import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.base.BaseFragment
 import co.netguru.baby.monitor.client.common.extensions.setDivider
 import co.netguru.baby.monitor.client.common.extensions.showSnackbarMessage
+import co.netguru.baby.monitor.client.databinding.FragmentConnectingDevicesBinding
 import co.netguru.baby.monitor.client.feature.analytics.Screen
 import co.netguru.baby.monitor.client.feature.communication.nsd.NsdServicesAdapter
 import co.netguru.baby.monitor.client.feature.communication.nsd.NsdState
@@ -24,7 +25,6 @@ import co.netguru.baby.monitor.client.feature.communication.nsd.ResolveFailedExc
 import co.netguru.baby.monitor.client.feature.communication.nsd.StartDiscoveryFailedException
 import io.reactivex.Single
 import io.reactivex.disposables.Disposable
-import kotlinx.android.synthetic.main.fragment_connecting_devices.*
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -40,9 +40,12 @@ class ServiceDiscoveryFragment : BaseFragment() {
     private val viewModel by lazy {
         ViewModelProviders.of(this, factory)[ServiceDiscoveryViewModel::class.java]
     }
+    private var _binding: FragmentConnectingDevicesBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentConnectingDevicesBinding.bind(view)
         setupAdapter()
         setupObservers()
         setupInProgressViews()
@@ -51,7 +54,7 @@ class ServiceDiscoveryFragment : BaseFragment() {
     private fun setupAdapter() {
         nsdServicesAdapter =
             NsdServicesAdapter { nsdServiceInfo -> navigateToPairingFragment(nsdServiceInfo) }
-        recyclerView.apply {
+        binding.recyclerView.apply {
             layoutManager =
                 LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
             adapter = nsdServicesAdapter
@@ -77,7 +80,7 @@ class ServiceDiscoveryFragment : BaseFragment() {
         when (nsdState) {
             is NsdState.Error -> handleNsdServiceError(nsdState.throwable)
             is NsdState.InProgress -> {
-                if (motionContainer.currentState != R.id.end) motionContainer.transitionToEnd()
+                if (binding.motionContainer.currentState != R.id.end) binding.motionContainer.transitionToEnd()
                 handleServices(nsdState.serviceInfoList)
             }
             is NsdState.Completed -> {
@@ -103,30 +106,30 @@ class ServiceDiscoveryFragment : BaseFragment() {
     }
 
     private fun setupCompleteViews() {
-        cancelRefreshButton.apply {
+        binding.cancelRefreshButton.apply {
             setOnClickListener {
                 discoverNsdService()
             }
             text = resources.getString(R.string.refresh_list)
         }
-        backButton.apply {
+        binding.backButton.apply {
             isVisible = true
             setOnClickListener {
                 findNavController().navigateUp()
             }
         }
-        progressBar.isVisible = false
+        binding.progressBar.isVisible = false
     }
 
     private fun setupInProgressViews() {
-        cancelRefreshButton.apply {
+        binding.cancelRefreshButton.apply {
             setOnClickListener {
                 goBackToSpecifyDevice()
             }
             text = resources.getString(R.string.cancel)
         }
-        backButton.isVisible = false
-        progressBar.isVisible = true
+        binding.backButton.isVisible = false
+        binding.progressBar.isVisible = true
     }
 
     private fun handleServices(serviceInfoList: List<NsdServiceInfo>) {
@@ -169,6 +172,8 @@ class ServiceDiscoveryFragment : BaseFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         nsdServicesAdapter = null
+        binding.recyclerView.adapter = null
+        _binding = null
     }
 
     companion object {

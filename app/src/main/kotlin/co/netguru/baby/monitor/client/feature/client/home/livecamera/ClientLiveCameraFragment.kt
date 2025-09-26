@@ -12,6 +12,7 @@ import co.netguru.baby.monitor.client.common.PermissionUtils
 import co.netguru.baby.monitor.client.common.base.BaseFragment
 import co.netguru.baby.monitor.client.common.extensions.scaleAnimation
 import co.netguru.baby.monitor.client.common.extensions.showSnackbarMessage
+import co.netguru.baby.monitor.client.databinding.FragmentClientLiveCameraBinding
 import co.netguru.baby.monitor.client.feature.analytics.Screen
 import co.netguru.baby.monitor.client.feature.babynotification.BabyEventActionIntentService
 import co.netguru.baby.monitor.client.feature.client.home.BackButtonState
@@ -20,7 +21,6 @@ import co.netguru.baby.monitor.client.feature.communication.webrtc.ConnectionSta
 import co.netguru.baby.monitor.client.feature.communication.webrtc.RtcConnectionState
 import co.netguru.baby.monitor.client.feature.communication.webrtc.StreamState
 import co.netguru.baby.monitor.client.feature.communication.websocket.RxWebSocketClient
-import kotlinx.android.synthetic.main.fragment_client_live_camera.*
 import timber.log.Timber
 import java.net.URI
 import javax.inject.Inject
@@ -39,9 +39,12 @@ class ClientLiveCameraFragment : BaseFragment() {
     private val fragmentViewModel by lazy {
         ViewModelProviders.of(this, factory)[ClientLiveCameraFragmentViewModel::class.java]
     }
+    private var _binding: FragmentClientLiveCameraBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentClientLiveCameraBinding.bind(view)
         viewModel.setBackButtonState(
             BackButtonState(
                 true,
@@ -60,13 +63,13 @@ class ClientLiveCameraFragment : BaseFragment() {
         ) {
             enablePushToSpeakButton()
         } else {
-            pushToSpeakButton.isVisible = false
+            binding.pushToSpeakButton.isVisible = false
         }
     }
 
     private fun enablePushToSpeakButton() {
-        pushToSpeakButton.isVisible = true
-        pushToSpeakButton.setOnTouchListener { _, event ->
+        binding.pushToSpeakButton.isVisible = true
+        binding.pushToSpeakButton.setOnTouchListener { _, event ->
             if (event.action == MotionEvent.ACTION_DOWN) {
                 onPushToSpeakButtonPressed()
             } else if (event.action == MotionEvent.ACTION_UP) {
@@ -78,7 +81,7 @@ class ClientLiveCameraFragment : BaseFragment() {
 
     private fun onPushToSpeakButtonRelease() {
         fragmentViewModel.pushToSpeak(false)
-        pushToSpeakButton.scaleAnimation(
+        binding.pushToSpeakButton.scaleAnimation(
             false,
             PRESSED_SCALE,
             NORMAL_SCALE,
@@ -88,7 +91,7 @@ class ClientLiveCameraFragment : BaseFragment() {
 
     private fun onPushToSpeakButtonPressed() {
         fragmentViewModel.pushToSpeak(true)
-        pushToSpeakButton.scaleAnimation(
+        binding.pushToSpeakButton.scaleAnimation(
             true,
             PRESSED_SCALE,
             NORMAL_SCALE,
@@ -151,7 +154,7 @@ class ClientLiveCameraFragment : BaseFragment() {
         val serverUri = URI.create(viewModel.selectedChildLiveData.value?.address ?: return)
         fragmentViewModel.startCall(
             requireActivity().applicationContext,
-            liveCameraRemoteRenderer,
+            binding.liveCameraRemoteRenderer,
             serverUri,
             rxWebSocketClient,
             hasRecordAudioPermission
@@ -161,8 +164,8 @@ class ClientLiveCameraFragment : BaseFragment() {
     private fun handleStreamStateChange(streamState: StreamState) {
         when ((streamState as? ConnectionState)?.connectionState) {
             RtcConnectionState.Connected,
-            RtcConnectionState.Completed -> streamProgressBar.isVisible = false
-            RtcConnectionState.Checking -> streamProgressBar.isVisible = true
+            RtcConnectionState.Completed -> binding.streamProgressBar.isVisible = false
+            RtcConnectionState.Checking -> binding.streamProgressBar.isVisible = true
             RtcConnectionState.Error -> handleBabyDeviceSdpError()
             else -> Unit
         }
@@ -171,6 +174,12 @@ class ClientLiveCameraFragment : BaseFragment() {
     private fun handleBabyDeviceSdpError() {
         showSnackbarMessage(R.string.stream_error)
         requireActivity().onBackPressed()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding.pushToSpeakButton.setOnTouchListener(null)
+        _binding = null
     }
 
     companion object {

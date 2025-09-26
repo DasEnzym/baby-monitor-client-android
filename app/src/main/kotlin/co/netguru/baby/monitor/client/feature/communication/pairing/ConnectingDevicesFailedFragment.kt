@@ -6,16 +6,19 @@ import androidx.activity.OnBackPressedCallback
 import androidx.navigation.fragment.findNavController
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.base.BaseFragment
+import co.netguru.baby.monitor.client.databinding.FragmentFailedDevicesConnectingBinding
 import co.netguru.baby.monitor.client.feature.analytics.Screen
-import kotlinx.android.synthetic.main.fragment_failed_devices_connecting.*
 
 class ConnectingDevicesFailedFragment : BaseFragment() {
     override val layoutResource = R.layout.fragment_failed_devices_connecting
     override val screen: Screen = Screen.CONNECTION_FAILED
+    private var _binding: FragmentFailedDevicesConnectingBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        configurationFailedTryAgainButton.setOnClickListener {
+        _binding = FragmentFailedDevicesConnectingBinding.bind(view)
+        binding.configurationFailedTryAgainButton.setOnClickListener {
             findNavController().navigate(R.id.connectionFailedToServiceDiscovery)
         }
         setupOnBackPressedHandling()
@@ -28,5 +31,10 @@ class ConnectingDevicesFailedFragment : BaseFragment() {
                 findNavController().navigate(R.id.connectionFailedToServiceDiscovery)
             }
         })
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
