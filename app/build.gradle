@@ -16,12 +16,12 @@ ext {
 }
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    namespace 'co.netguru.baby.monitor.client'
+    compileSdk 34
     defaultConfig {
         applicationId "com.netguru.babyguard"
         minSdkVersion 21
-        targetSdkVersion 29
+        targetSdk 34
         versionCode isBitrise ? Integer.parseInt(bitrise.io.buildNumber) : 1
         versionName '0.5.0'
         vectorDrawables.useSupportLibrary = true
@@ -72,7 +72,7 @@ android {
         viewBinding = true
     }
 
-    buildTypes.each { type ->
+    buildTypes.configureEach { type ->
         type.buildConfigField 'String', 'FIREBASE_CLOUD_MESSAGING_SERVER_KEY', "\"$secrets.firebaseCloudMessagingServerKey\""
     }
 
@@ -83,9 +83,18 @@ android {
         }
     }
     packagingOptions {
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
+        jniLibs {
+            useLegacyPackaging true
+        }
+    }
+    packaging {
+        resources {
+            excludes += [
+                    'META-INF/services/javax.annotation.processing.Processor',
+                    'META-INF/LICENSE.txt',
+                    'META-INF/NOTICE.txt'
+            ]
+        }
     }
     sourceSets.all {
         it.java.srcDir "src/$it.name/kotlin"
@@ -112,8 +121,8 @@ android {
                     '**/*Lambda.class',
                     '**/*Lambda*.class']
     }
-    lintOptions {
-        abortOnError false
+    lint {
+        abortOnError = false
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -123,7 +132,7 @@ android {
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     kotlinOptions {
-        jvmTarget = 1.8
+        jvmTarget = '1.8'
     }
 }
 
@@ -158,13 +167,14 @@ dependencies {
     implementation ktx.core
     implementation ktx.fragment
     implementation ktx.liveData
+    implementation ktx.runtime
+    implementation ktx.viewModel
 
     //Anko Commons
     implementation libs.ankoCommons
 
     //Live Data
-    implementation libs.lifecycleExtensions
-    kapt proc.lifecycleExtensions
+    kapt proc.lifecycleCompiler
 
     //Room
     implementation libs.room
@@ -212,9 +222,6 @@ dependencies {
     //EasyImage
     implementation libs.easyImage
 
-    //Tensor Flow
-    implementation libs.tensorFlow
-
     //Java Web Socket
     implementation libs.javaWebSocket
 
@@ -222,7 +229,7 @@ dependencies {
     implementation libs.googleWebRtc
 
     //Firebase
-    implementation platform('com.google.firebase:firebase-bom:33.1.0')
+    implementation platform(libs.firebaseBom)
     implementation libs.firebaseStorage
 
     //Firebase Database
@@ -243,7 +250,7 @@ dependencies {
     testImplementation test.junit
     testImplementation test.mockito
     testImplementation test.mockitoKotlin
-    testImplementation test.lifecycleExtensions
+    testImplementation test.coreTesting
 
     //Instrumented tests
     androidTestImplementation test.supportAnnotations
@@ -251,5 +258,5 @@ dependencies {
     androidTestImplementation test.rules
     androidTestImplementation test.espresso
     androidTestImplementation test.room
-    androidTestImplementation test.lifecycleExtensions
+    androidTestImplementation test.coreTesting
 }

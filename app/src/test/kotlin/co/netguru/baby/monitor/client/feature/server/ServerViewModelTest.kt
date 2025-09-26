@@ -15,7 +15,7 @@ import co.netguru.baby.monitor.client.feature.communication.websocket.Message
 import co.netguru.baby.monitor.client.feature.communication.websocket.Message.Companion.RESET_ACTION
 import co.netguru.baby.monitor.client.feature.communication.websocket.WebSocketServerService
 import co.netguru.baby.monitor.client.feature.server.ServerViewModel.Companion.VIDEO_PREVIEW_TOTAL_TIME
-import com.nhaarman.mockitokotlin2.*
+import org.mockito.kotlin.*
 import dagger.Lazy
 import io.reactivex.Completable
 import io.reactivex.Observable

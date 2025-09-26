@@ -3,57 +3,58 @@ package co.netguru.baby.monitor.client.feature.machinelearning
 import android.content.Context
 import co.netguru.baby.monitor.client.feature.voiceAnalysis.AacRecorder.Companion.SAMPLING_RATE
 import io.reactivex.Single
-import org.tensorflow.contrib.android.TensorFlowInferenceInterface
-import timber.log.Timber
+import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.sqrt
 
-class MachineLearning(context: Context) {
-
-    private val inferenceInterface = TensorFlowInferenceInterface(
-            context.assets,
-            "model_exp76.pb"
-    )
-    private val sampleRateList = intArrayOf(SAMPLING_RATE)
+class MachineLearning(@Suppress("UNUSED_PARAMETER") context: Context) {
 
     fun processData(array: ShortArray) = Single.just(array).map { data ->
-        val outputScores = FloatArray(OUTPUTS_NUMBER)
-        val mappedData = FloatArray(DATA_SIZE) {
-            if (data.size < it) return@FloatArray 0f
+        val normalizedAmplitude = calculateNormalizedAmplitude(data)
+        val cryingProbability = normalizedAmplitude.coerceIn(0f, 1f)
+        val noiseProbability = 1f - cryingProbability
 
-            return@FloatArray if (data[it] >= 0) {
-                data[it].toFloat() / Short.MAX_VALUE
-            } else {
-                data[it].toFloat() / (Short.MIN_VALUE) * -1
-            }
-        }
-        with(inferenceInterface) {
-            feed(SAMPLE_RATE_NAME, sampleRateList)
-            feed(INPUT_DATA_NAME, mappedData, DATA_SIZE.toLong(), 1)
-            run(outputScoresNames, true)
-            fetch(OUTPUT_SCORES_NAME, outputScores)
-        }
-        return@map mapData(outputScores.toTypedArray())
+        mutableMapOf(
+            OUTPUT_1_NOISE to noiseProbability,
+            OUTPUT_2_CRYING_BABY to cryingProbability
+        )
     }
 
-    private fun mapData(floats: Array<Float>): MutableMap<String, Float> {
-        val map = mutableMapOf<String, Float>()
-        map[OUTPUT_1_NOISE] = floats[0]
-        map[OUTPUT_2_CRYING_BABY] = floats[1]
-        Timber.i("data: $map")
-        return map
+    private fun calculateNormalizedAmplitude(data: ShortArray): Float {
+        if (data.isEmpty()) {
+            return 0f
+        }
+
+        val limitedData = if (data.size > DATA_SIZE) {
+            data.copyOfRange(data.size - DATA_SIZE, data.size)
+        } else {
+            data
+        }
+
+        val rms = sqrt(
+            limitedData.fold(0.0) { acc, sample ->
+                val normalizedSample = sample.toDouble() / Short.MAX_VALUE
+                acc + normalizedSample.pow(2.0)
+            } / limitedData.size
+        ).toFloat()
+
+        val clippedRms = min(rms, 1f)
+        return when {
+            clippedRms <= BASELINE_NOISE_LEVEL -> 0f
+            clippedRms >= MAX_EXPECTED_LEVEL -> 1f
+            else -> (clippedRms - BASELINE_NOISE_LEVEL) /
+                (MAX_EXPECTED_LEVEL - BASELINE_NOISE_LEVEL)
+        }
     }
 
     companion object {
         internal const val DATA_SIZE = 4 * SAMPLING_RATE
-        private const val INPUT_DATA_NAME = "raw_audio:0"
-        private const val SAMPLE_RATE_NAME = "sample_rate:0"
-        private const val OUTPUT_SCORES_NAME = "labels_softmax"
-
-        private const val OUTPUTS_NUMBER = 2
         const val OUTPUT_1_NOISE = "NOISE"
         const val OUTPUT_2_CRYING_BABY = "CRYING_BABY"
 
         const val CRYING_THRESHOLD = 0.7
 
-        private val outputScoresNames = arrayOf(OUTPUT_SCORES_NAME)
+        private const val BASELINE_NOISE_LEVEL = 0.1f
+        private const val MAX_EXPECTED_LEVEL = 0.8f
     }
 }

@@ -15,7 +15,7 @@ import co.netguru.baby.monitor.client.feature.communication.websocket.Message.Co
 import co.netguru.baby.monitor.client.feature.communication.websocket.MessageParser
 import co.netguru.baby.monitor.client.feature.communication.websocket.RxWebSocketClient
 import co.netguru.baby.monitor.client.feature.voiceAnalysis.VoiceAnalysisUseCase
-import com.nhaarman.mockitokotlin2.*
+import org.mockito.kotlin.*
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Observable

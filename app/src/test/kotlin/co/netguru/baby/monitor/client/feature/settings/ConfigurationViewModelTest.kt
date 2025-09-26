@@ -8,7 +8,7 @@ import co.netguru.baby.monitor.client.common.Randomiser
 import co.netguru.baby.monitor.client.feature.communication.ConfirmationUseCase
 import co.netguru.baby.monitor.client.feature.communication.websocket.MessageController
 import co.netguru.baby.monitor.client.feature.voiceAnalysis.VoiceAnalysisOption
-import com.nhaarman.mockitokotlin2.*
+import org.mockito.kotlin.*
 import io.reactivex.Completable
 import io.reactivex.Single
 import org.junit.Before

@@ -12,7 +12,7 @@ import co.netguru.baby.monitor.client.feature.babynotification.NotifyBabyEventUs
 import co.netguru.baby.monitor.client.feature.debug.DebugModule
 import co.netguru.baby.monitor.client.feature.machinelearning.MachineLearning
 import co.netguru.baby.monitor.client.feature.noisedetection.NoiseDetector
-import com.nhaarman.mockitokotlin2.*
+import org.mockito.kotlin.*
 import io.reactivex.Completable
 import io.reactivex.Maybe
 import io.reactivex.Single

@@ -10,8 +10,8 @@ import co.netguru.baby.monitor.client.feature.analytics.Event
 import co.netguru.baby.monitor.client.feature.analytics.EventType
 import co.netguru.baby.monitor.client.feature.babynotification.OpenCameraUseCase
 import co.netguru.baby.monitor.client.feature.client.home.ClientHomeActivity
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.junit.Test
 
 class OpenCameraUseCaseTest {
@@ -39,7 +39,7 @@ class OpenCameraUseCaseTest {
     @Test
     fun `should send openCameraEvent to firebase`() {
         openCameraUseCase.openLiveClientCamera(navDeepLinkBuilder, snoozeDialogArgument)
-        verify(analyticsManager).logEvent(com.nhaarman.mockitokotlin2.check {
+        verify(analyticsManager).logEvent(org.mockito.kotlin.check {
             assert(it is Event.Simple && it.eventType == EventType.NOTIFICATION_OPEN_CAMERA)
         })
     }

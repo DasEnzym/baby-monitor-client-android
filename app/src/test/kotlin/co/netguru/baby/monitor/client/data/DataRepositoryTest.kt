@@ -9,7 +9,7 @@ import co.netguru.baby.monitor.client.data.splash.AppStateHandler
 import co.netguru.baby.monitor.client.feature.analytics.AnalyticsManager
 import co.netguru.baby.monitor.client.feature.analytics.UserProperty
 import co.netguru.baby.monitor.client.feature.voiceAnalysis.VoiceAnalysisOption
-import com.nhaarman.mockitokotlin2.*
+import org.mockito.kotlin.*
 import org.junit.Rule
 import org.junit.Test
 
