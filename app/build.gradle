@@ -82,12 +82,10 @@ android {
             events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
         }
     }
-    packagingOptions {
+    packaging {
         jniLibs {
             useLegacyPackaging true
         }
-    }
-    packaging {
         resources {
             excludes += [
                     'META-INF/services/javax.annotation.processing.Processor',
