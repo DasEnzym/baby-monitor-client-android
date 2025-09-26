@@ -2,8 +2,8 @@ package co.netguru.baby.monitor.client.feature.onboarding
 
 import co.netguru.baby.monitor.client.data.DataRepository
 import co.netguru.baby.monitor.client.data.splash.AppState
-import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.verify
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.junit.Test
 
 class FinishOnboardingUseCaseTest {

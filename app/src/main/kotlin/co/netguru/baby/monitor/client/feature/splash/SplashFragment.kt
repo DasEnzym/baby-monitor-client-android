@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.base.BaseFragment
@@ -25,14 +24,14 @@ class SplashFragment : BaseFragment() {
     @Inject
     internal lateinit var factory: ViewModelProvider.Factory
     private val viewModel by lazy {
-        ViewModelProviders.of(this, factory)[SplashViewModel::class.java]
+        ViewModelProvider(this, factory)[SplashViewModel::class.java]
     }
     private val compositeDisposable = CompositeDisposable()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.getSavedState()
-        viewModel.appState.observe(this, Observer(this::handleSplash))
+        viewModel.appState.observe(viewLifecycleOwner, Observer(this::handleSplash))
     }
 
     override fun onDestroy() {

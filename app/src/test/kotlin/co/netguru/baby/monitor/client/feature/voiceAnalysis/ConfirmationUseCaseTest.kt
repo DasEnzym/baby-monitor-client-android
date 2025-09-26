@@ -6,7 +6,7 @@ import co.netguru.baby.monitor.client.feature.communication.ConfirmationItem
 import co.netguru.baby.monitor.client.feature.communication.ConfirmationUseCase
 import co.netguru.baby.monitor.client.feature.communication.websocket.Message
 import co.netguru.baby.monitor.client.feature.communication.websocket.MessageController
-import com.nhaarman.mockitokotlin2.*
+import org.mockito.kotlin.*
 import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers

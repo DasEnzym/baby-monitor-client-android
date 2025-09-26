@@ -6,7 +6,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import co.netguru.baby.monitor.RxSchedulersOverrideRule
 import co.netguru.baby.monitor.client.feature.communication.nsd.NsdServiceManager.Companion.SERVICE_NAME
-import com.nhaarman.mockitokotlin2.*
+import org.mockito.kotlin.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

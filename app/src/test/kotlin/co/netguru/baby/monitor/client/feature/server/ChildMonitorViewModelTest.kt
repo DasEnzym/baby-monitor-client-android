@@ -6,7 +6,7 @@ import co.netguru.baby.monitor.RxSchedulersOverrideRule
 import co.netguru.baby.monitor.client.feature.analytics.AnalyticsManager
 import co.netguru.baby.monitor.client.feature.analytics.Event
 import co.netguru.baby.monitor.client.feature.batterylevel.NotifyLowBatteryUseCase
-import com.nhaarman.mockitokotlin2.*
+import org.mockito.kotlin.*
 import io.reactivex.Completable
 import org.junit.Rule
 import org.junit.Test

@@ -1,7 +1,7 @@
 package co.netguru.baby.monitor
 
-import com.nhaarman.mockitokotlin2.inOrder
-import com.nhaarman.mockitokotlin2.mock
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.mock
 
 object TestUtils {
     inline fun <reified T : Any, reified R : Any> mockBuilder(mockResult: R) =
