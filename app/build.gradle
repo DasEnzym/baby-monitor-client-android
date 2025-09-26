@@ -1,27 +1,29 @@
-apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-kapt'
-apply plugin: 'com.github.ben-manes.versions'
-apply plugin: 'com.getkeepsafe.dexcount'
-apply plugin: 'com.vanniktech.android.junit.jacoco'
-apply plugin: 'com.google.firebase.crashlytics'
-apply plugin: 'com.google.firebase.firebase-perf'
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "org.jetbrains.kotlin.kapt"
+    id "com.github.ben-manes.versions"
+    id "com.getkeepsafe.dexcount"
+    id "com.vanniktech.android.junit.jacoco"
+    id "com.google.gms.google-services"
+    id "com.google.firebase.crashlytics"
+    id "com.google.firebase.firebase-perf"
+}
 
 ext {
-
     secrets = [
             firebaseCloudMessagingServerKey: keyProperty("FIREBASE_CLOUD_MESSAGING_SERVER_KEY")
     ]
 }
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    namespace "com.netguru.babyguard"
+    compileSdk = 34
+
     defaultConfig {
         applicationId "com.netguru.babyguard"
-        minSdkVersion 21
-        targetSdkVersion 29
+        minSdk = 21
+        targetSdk = 34
         versionCode isBitrise ? Integer.parseInt(bitrise.io.buildNumber) : 1
         versionName '0.5.0'
         vectorDrawables.useSupportLibrary = true
@@ -72,26 +74,32 @@ android {
         viewBinding = true
     }
 
-    buildTypes.each { type ->
-        type.buildConfigField 'String', 'FIREBASE_CLOUD_MESSAGING_SERVER_KEY', "\"$secrets.firebaseCloudMessagingServerKey\""
+    buildTypes.configureEach {
+        buildConfigField 'String', 'FIREBASE_CLOUD_MESSAGING_SERVER_KEY', "\"$secrets.firebaseCloudMessagingServerKey\""
     }
 
-    // Always show the result of every unit test, even if it passes.
-    testOptions.unitTests.all {
-        testLogging {
-            events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+    testOptions {
+        unitTests.all {
+            testLogging {
+                events 'passed', 'skipped', 'failed', 'standardOut', 'standardError'
+            }
         }
     }
-    packagingOptions {
-        exclude 'META-INF/services/javax.annotation.processing.Processor'
-        exclude 'META-INF/LICENSE.txt'
-        exclude 'META-INF/NOTICE.txt'
+
+    packaging {
+        resources {
+            excludes += 'META-INF/services/javax.annotation.processing.Processor'
+            excludes += 'META-INF/LICENSE.txt'
+            excludes += 'META-INF/NOTICE.txt'
+        }
     }
+
     sourceSets.all {
         it.java.srcDir "src/$it.name/kotlin"
     }
+
     junitJacoco {
-        jacocoVersion = '0.8.2'
+        jacocoVersion = '0.8.11'
         excludes = ['android/databinding/**/*.class',
                     '**/android/databinding/*Binding.class',
                     '**/BR.*',
@@ -112,24 +120,31 @@ android {
                     '**/*Lambda.class',
                     '**/*Lambda*.class']
     }
-    lintOptions {
-        abortOnError false
+
+    lint {
+        abortOnError = false
     }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+kotlin {
+    jvmToolchain(17)
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
     kotlinOptions {
-        jvmTarget = 1.8
+        jvmTarget = "17"
     }
 }
 
 kapt {
     correctErrorTypes = true
 }
+
 configurations {
     dependencyUpdates.resolutionStrategy = {
         componentSelection { rules ->
