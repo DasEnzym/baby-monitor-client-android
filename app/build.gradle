@@ -1,7 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.github.ben-manes.versions'
 apply plugin: 'com.getkeepsafe.dexcount'
@@ -69,6 +68,10 @@ android {
         releasePreprod { java.srcDirs += 'src/debugTools/kotlin' }
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     buildTypes.each { type ->
         type.buildConfigField 'String', 'FIREBASE_CLOUD_MESSAGING_SERVER_KEY', "\"$secrets.firebaseCloudMessagingServerKey\""
     }
@@ -127,11 +130,6 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
 kapt {
     correctErrorTypes = true
 }
-
-androidExtensions {
-    experimental = true
-}
-
 configurations {
     dependencyUpdates.resolutionStrategy = {
         componentSelection { rules ->

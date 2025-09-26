@@ -15,6 +15,7 @@ import co.netguru.baby.monitor.client.common.extensions.observeNonNull
 import co.netguru.baby.monitor.client.common.extensions.setVisible
 import co.netguru.baby.monitor.client.data.client.ChildDataEntity
 import co.netguru.baby.monitor.client.data.client.home.ToolbarState
+import co.netguru.baby.monitor.client.databinding.ActivityClientHomeBinding
 import co.netguru.baby.monitor.client.feature.babynotification.SnoozeNotificationUseCase.Companion.SNOOZE_DIALOG_TAG
 import co.netguru.baby.monitor.client.feature.communication.websocket.Message
 import co.netguru.baby.monitor.client.feature.onboarding.OnboardingActivity
@@ -23,9 +24,6 @@ import co.netguru.baby.monitor.client.feature.settings.ChangeState
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.snackbar.Snackbar
 import dagger.android.support.DaggerAppCompatActivity
-import kotlinx.android.synthetic.main.activity_client_home.*
-import kotlinx.android.synthetic.main.toolbar_child.*
-import kotlinx.android.synthetic.main.toolbar_default.*
 import timber.log.Timber
 import java.net.URI
 import javax.inject.Inject
@@ -42,10 +40,12 @@ class ClientHomeActivity : DaggerAppCompatActivity(),
     private val configurationViewModel by lazy {
         ViewModelProviders.of(this, factory)[ConfigurationViewModel::class.java]
     }
+    private lateinit var binding: ActivityClientHomeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_client_home)
+        binding = ActivityClientHomeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         controlVideoStreamVolume()
 
         setupView()
@@ -78,7 +78,7 @@ class ClientHomeActivity : DaggerAppCompatActivity(),
         homeViewModel.backButtonState.observe(
             this,
             Observer {
-                backIbtn.setVisible(it?.shouldBeVisible == true)
+                binding.childToolbarLayout.backIbtn.setVisible(it?.shouldBeVisible == true)
                 setBackButtonClick(it?.shouldShowSnoozeDialog == true)
             })
 
@@ -115,13 +115,13 @@ class ClientHomeActivity : DaggerAppCompatActivity(),
         findNavController(R.id.clientDashboardNavigationHostFragment).navigateUp()
 
     private fun setupView() {
-        toolbarSettingsIbtn.setOnClickListener {
+        binding.childToolbarLayout.toolbarSettingsIbtn.setOnClickListener {
             homeViewModel.shouldDrawerBeOpen.postValue(true)
         }
-        toolbarBackBtn.setOnClickListener {
+        binding.defaultToolbarLayout.toolbarBackBtn.setOnClickListener {
             findNavController(R.id.clientDashboardNavigationHostFragment).navigateUp()
         }
-        client_drawer.isDrawerOpen(GravityCompat.END)
+        binding.clientDrawer.isDrawerOpen(GravityCompat.END)
     }
 
     private fun handleSelectedChild(child: ChildDataEntity) {
@@ -130,19 +130,19 @@ class ClientHomeActivity : DaggerAppCompatActivity(),
             .load(child.image)
             .placeholder(R.drawable.baby_logo)
             .apply(RequestOptions.circleCropTransform())
-            .into(toolbarChildMiniatureIv)
+            .into(binding.childToolbarLayout.toolbarChildMiniatureIv)
     }
 
     private fun handleDrawerEvent(shouldClose: Boolean?) {
         if (shouldClose == true) {
-            client_drawer.openDrawer(GravityCompat.END)
+            binding.clientDrawer.openDrawer(GravityCompat.END)
         } else {
-            client_drawer.closeDrawer(GravityCompat.END)
+            binding.clientDrawer.closeDrawer(GravityCompat.END)
         }
     }
 
     private fun showErrorSnackbar(messageResource: Int) {
-        Snackbar.make(coordinator, messageResource, Snackbar.LENGTH_INDEFINITE)
+        Snackbar.make(binding.coordinator, messageResource, Snackbar.LENGTH_INDEFINITE)
             .setAction(getString(R.string.restart)) {
                 homeViewModel.restartApp(this)
             }
@@ -150,7 +150,7 @@ class ClientHomeActivity : DaggerAppCompatActivity(),
     }
 
     private fun setBackButtonClick(shouldShowSnoozeDialog: Boolean) {
-        backIbtn.setOnClickListener {
+        binding.childToolbarLayout.backIbtn.setOnClickListener {
             findNavController(R.id.clientDashboardNavigationHostFragment).navigateUp()
             if (shouldShowSnoozeDialog) showSnoozeDialog()
         }
@@ -171,7 +171,7 @@ class ClientHomeActivity : DaggerAppCompatActivity(),
     }
 
     private fun setSelectedChildName(name: String) {
-        toolbarChildTv.text = if (name.isNotEmpty()) {
+        binding.childToolbarLayout.toolbarChildTv.text = if (name.isNotEmpty()) {
             name
         } else {
             getString(R.string.no_name)
@@ -181,17 +181,17 @@ class ClientHomeActivity : DaggerAppCompatActivity(),
     private fun handleToolbarStateChange(state: ToolbarState?) {
         when (state) {
             ToolbarState.HIDDEN -> {
-                childToolbarLayout.setVisible(false)
-                defaultToolbarLayout.setVisible(false)
+                binding.childToolbarLayout.root.setVisible(false)
+                binding.defaultToolbarLayout.root.setVisible(false)
             }
             ToolbarState.HISTORY -> {
-                childToolbarLayout.setVisible(false)
-                defaultToolbarLayout.setVisible(true)
-                toolbarTitleTv.text = getString(R.string.latest_activity)
+                binding.childToolbarLayout.root.setVisible(false)
+                binding.defaultToolbarLayout.root.setVisible(true)
+                binding.defaultToolbarLayout.toolbarTitleTv.text = getString(R.string.latest_activity)
             }
             ToolbarState.DEFAULT -> {
-                defaultToolbarLayout.setVisible(false)
-                childToolbarLayout.setVisible(true)
+                binding.defaultToolbarLayout.root.setVisible(false)
+                binding.childToolbarLayout.root.setVisible(true)
             }
         }
     }

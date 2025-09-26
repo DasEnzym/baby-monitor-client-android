@@ -5,21 +5,29 @@ import android.view.View
 import androidx.navigation.fragment.findNavController
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.base.BaseFragment
+import co.netguru.baby.monitor.client.databinding.FragmentAllDoneBinding
 import co.netguru.baby.monitor.client.feature.analytics.Screen
-import kotlinx.android.synthetic.main.fragment_all_done.*
 
 class AllDoneFragment : BaseFragment() {
     override val layoutResource = R.layout.fragment_all_done
     override val screen: Screen = Screen.ALL_DONE
+    private var _binding: FragmentAllDoneBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        addDoneCtrl.setOnClickListener {
+        _binding = FragmentAllDoneBinding.bind(view)
+        binding.addDoneCtrl.setOnClickListener {
             findNavController().navigate(R.id.allDoneToClientHome)
             requireActivity().finish()
         }
-        allDoneBackIv.setOnClickListener {
+        binding.allDoneBackIv.setOnClickListener {
             findNavController().navigateUp()
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

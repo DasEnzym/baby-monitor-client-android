@@ -6,12 +6,15 @@ import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.navigation.fragment.findNavController
+import androidx.viewbinding.ViewBinding
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.base.BaseFragment
+import co.netguru.baby.monitor.client.databinding.FragmentFeatureABinding
+import co.netguru.baby.monitor.client.databinding.FragmentFeatureBBinding
+import co.netguru.baby.monitor.client.databinding.FragmentFeatureCBinding
+import co.netguru.baby.monitor.client.databinding.OnboardingButtonsBinding
 import co.netguru.baby.monitor.client.feature.analytics.Screen
-import kotlinx.android.synthetic.main.onboarding_buttons.*
 import javax.inject.Inject
 
 class FeaturePresentationFragment : BaseFragment() {
@@ -21,34 +24,55 @@ class FeaturePresentationFragment : BaseFragment() {
     @Inject
     lateinit var finishOnboardingUseCase: FinishOnboardingUseCase
 
+    private var _binding: ViewBinding? = null
+    private val onboardingButtonsBinding: OnboardingButtonsBinding
+        get() = when (val binding = _binding) {
+            is FragmentFeatureABinding -> binding.onboardingButtons
+            is FragmentFeatureBBinding -> binding.onboardingButtons
+            is FragmentFeatureCBinding -> binding.onboardingButtons
+            else -> throw IllegalStateException("Binding not initialized")
+        }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        layoutResource = when (arguments?.getString(FEATURE_KEY)) {
-            FEATURE_B -> R.layout.fragment_feature_b
-            FEATURE_C -> R.layout.fragment_feature_c
-            else -> R.layout.fragment_feature_a
+        val featureLayout = when (arguments?.getString(FEATURE_KEY)) {
+            FEATURE_B -> FragmentFeatureBBinding.inflate(inflater, container, false).also {
+                layoutResource = R.layout.fragment_feature_b
+            }
+            FEATURE_C -> FragmentFeatureCBinding.inflate(inflater, container, false).also {
+                layoutResource = R.layout.fragment_feature_c
+            }
+            else -> FragmentFeatureABinding.inflate(inflater, container, false).also {
+                layoutResource = R.layout.fragment_feature_a
+            }
         }
-        return inflater.inflate(layoutResource, container, false)
+        _binding = featureLayout
+        return featureLayout.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        view.findViewById<TextView>(R.id.tos)?.apply {
+        (_binding as? FragmentFeatureCBinding)?.tos?.apply {
             text = HtmlCompat.fromHtml(
                 getString(R.string.tos_confirmation),
                 HtmlCompat.FROM_HTML_MODE_COMPACT
             )
             movementMethod = LinkMovementMethod.getInstance()
         }
-        featureNextBtn.setOnClickListener {
+        onboardingButtonsBinding.featureNextBtn.setOnClickListener {
             handleNextClicked()
         }
-        featureSkipBtn.setOnClickListener {
+        onboardingButtonsBinding.featureSkipBtn.setOnClickListener {
             findNavController().navigate(finishOnboarding())
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun handleNextClicked() {

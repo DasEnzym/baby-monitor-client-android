@@ -14,6 +14,7 @@ import androidx.navigation.findNavController
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.YesNoDialog
 import co.netguru.baby.monitor.client.common.extensions.controlVideoStreamVolume
+import co.netguru.baby.monitor.client.databinding.ActivityServerBinding
 import co.netguru.baby.monitor.client.feature.communication.websocket.Message
 import co.netguru.baby.monitor.client.feature.communication.websocket.MessageController
 import co.netguru.baby.monitor.client.feature.communication.websocket.WebSocketServerService
@@ -22,7 +23,6 @@ import co.netguru.baby.monitor.client.feature.settings.ConfigurationViewModel
 import co.netguru.baby.monitor.client.feature.settings.ChangeState
 import dagger.android.support.DaggerAppCompatActivity
 import io.reactivex.Observable
-import kotlinx.android.synthetic.main.activity_server.*
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -38,10 +38,12 @@ class ServerActivity : DaggerAppCompatActivity(), ServiceConnection,
     private val configurationViewModel by lazy {
         ViewModelProviders.of(this, factory)[ConfigurationViewModel::class.java]
     }
+    private lateinit var binding: ActivityServerBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_server)
+        binding = ActivityServerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         controlVideoStreamVolume()
         setupObservers()
         bindService(
@@ -68,9 +70,9 @@ class ServerActivity : DaggerAppCompatActivity(), ServiceConnection,
 
         serverViewModel.shouldDrawerBeOpen.observe(this, Observer { shouldClose ->
             if (shouldClose) {
-                server_drawer.openDrawer(GravityCompat.END)
+                binding.serverDrawer.openDrawer(GravityCompat.END)
             } else {
-                server_drawer.closeDrawer(GravityCompat.END)
+                binding.serverDrawer.closeDrawer(GravityCompat.END)
             }
         })
     }

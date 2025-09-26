@@ -9,8 +9,8 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.base.BaseFragment
+import co.netguru.baby.monitor.client.databinding.FragmentPairingBinding
 import co.netguru.baby.monitor.client.feature.analytics.Screen
-import kotlinx.android.synthetic.main.fragment_pairing.*
 import java.net.URI
 import javax.inject.Inject
 
@@ -24,9 +24,12 @@ class PairingFragment : BaseFragment() {
     private val viewModel by lazy {
         ViewModelProviders.of(this, factory)[PairingViewModel::class.java]
     }
+    private var _binding: FragmentPairingBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentPairingBinding.bind(view)
         setupObservers()
         setupViews()
         handlePairingCodeArgument()
@@ -39,7 +42,7 @@ class PairingFragment : BaseFragment() {
     }
 
     private fun setupViews() {
-        pairingCode.text = viewModel.randomPairingCode
+        binding.pairingCode.text = viewModel.randomPairingCode
         setupOnBackPressedHandling()
     }
 
@@ -51,7 +54,7 @@ class PairingFragment : BaseFragment() {
                 findNavController().popBackStack()
             }
         })
-        backButton.setOnClickListener {
+        binding.backButton.setOnClickListener {
             requireActivity().onBackPressed()
         }
     }
@@ -69,5 +72,10 @@ class PairingFragment : BaseFragment() {
                 R.id.pairingToConnectionFailed
             }
         )
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

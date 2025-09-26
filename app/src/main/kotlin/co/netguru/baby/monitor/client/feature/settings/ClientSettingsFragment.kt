@@ -17,6 +17,7 @@ import co.netguru.baby.monitor.client.BuildConfig
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.base.BaseFragment
 import co.netguru.baby.monitor.client.common.extensions.*
+import co.netguru.baby.monitor.client.databinding.FragmentClientSettingsBinding
 import co.netguru.baby.monitor.client.feature.client.home.ClientHomeViewModel
 import co.netguru.baby.monitor.client.feature.voiceAnalysis.VoiceAnalysisOption
 import io.reactivex.Observable
@@ -25,7 +26,6 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
-import kotlinx.android.synthetic.main.fragment_client_settings.*
 import pl.aprilapps.easyphotopicker.EasyImage
 import java.io.File
 import java.util.concurrent.TimeUnit
@@ -47,61 +47,64 @@ class ClientSettingsFragment : BaseFragment() {
         ViewModelProviders.of(requireActivity(), factory)[ClientHomeViewModel::class.java]
     }
     private val viewDisposables = CompositeDisposable()
+    private var _binding: FragmentClientSettingsBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentClientSettingsBinding.bind(view)
 
         setupButtons()
         setupObservers()
         setupBabyDetails()
         setupNoiseDetectionSeekbar()
 
-        version.text =
+        binding.version.text =
             getString(R.string.version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
     }
 
     private fun setupBabyDetails() {
-        childPhotoIv.babyProfileImage(
+        binding.childPhotoIv.babyProfileImage(
             R.drawable.ic_select_photo_placeholder,
             BITMAP_AUTO_SIZE,
             R.color.alpha_accent,
             R.drawable.ic_select_photo_camera
         )
 
-        childNameEt.onFocusChangeListener =
+        binding.childNameEt.onFocusChangeListener =
             View.OnFocusChangeListener { view: View, hasFocus: Boolean ->
                 if (!hasFocus) {
                     settingsViewModel.hideKeyboard(view, requireContext())
-                    if (childNameEt.text.isNullOrBlank()) {
-                        childNameEt.text?.clear()
+                    if (binding.childNameEt.text.isNullOrBlank()) {
+                        binding.childNameEt.text?.clear()
                     }
-                    settingsViewModel.updateChildName(childNameEt.text.toString())
+                    settingsViewModel.updateChildName(binding.childNameEt.text.toString())
                 }
             }
     }
 
     private fun setupButtons() {
-        rateUsBtn.setOnClickListener {
+        binding.rateUsBtn.setOnClickListener {
             settingsViewModel.openMarket(requireActivity())
         }
 
-        resetAppBtn.setOnClickListener {
+        binding.resetAppBtn.setOnClickListener {
             configurationViewModel.resetApp(clientViewModel)
         }
 
-        secondPartTv.setOnClickListener {
+        binding.secondPartTv.setOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.company_url))))
         }
 
-        closeIbtn.setOnClickListener {
+        binding.closeIbtn.setOnClickListener {
             clientViewModel.shouldDrawerBeOpen.postValue(false)
         }
 
-        childPhotoIv.setOnClickListener {
+        binding.childPhotoIv.setOnClickListener {
             takeOrChoosePhoto()
         }
 
-        voiceAnalysisRadioButtons.setOnCheckedChangeListener(voiceAnalysisCheckChangedListener())
+        binding.voiceAnalysisRadioButtons.setOnCheckedChangeListener(voiceAnalysisCheckChangedListener())
     }
 
     private fun voiceAnalysisCheckChangedListener(): RadioGroup.OnCheckedChangeListener {
@@ -122,18 +125,18 @@ class ClientSettingsFragment : BaseFragment() {
     private fun setupObservers() {
         clientViewModel.selectedChildLiveData.observeNonNull(viewLifecycleOwner) { child ->
             if (!child.name.isNullOrEmpty()) {
-                childNameEt.setText(child.name)
+                binding.childNameEt.setText(child.name)
             }
             if (!child.image.isNullOrEmpty()) {
-                childPhotoIv.babyProfileImage(
+                binding.childPhotoIv.babyProfileImage(
                     child.image, -1f,
                     R.color.alpha_accent, R.drawable.ic_select_photo_camera
                 )
             }
             checkVoiceAnalysisOption(resolveOption(child.voiceAnalysisOption))
-            noiseDetectionGroup.isVisible =
+            binding.noiseDetectionGroup.isVisible =
                 child.voiceAnalysisOption == VoiceAnalysisOption.NOISE_DETECTION
-            noiseDetectionSeekBar.progress = child.noiseLevel
+            binding.noiseDetectionSeekBar.progress = child.noiseLevel
         }
         configurationViewModel.resetState.observe(viewLifecycleOwner, Observer { resetState ->
             when (resetState) {
@@ -155,17 +158,17 @@ class ClientSettingsFragment : BaseFragment() {
     }
 
     private fun setupNoiseLevelSeekbar(noiseLevelState: Pair<ChangeState, Int?>) {
-        noiseDetectionSeekBar.isEnabled = noiseLevelState.first != ChangeState.InProgress
+        binding.noiseDetectionSeekBar.isEnabled = noiseLevelState.first != ChangeState.InProgress
         if (noiseLevelState.first == ChangeState.Failed) setPreviousValue(
             noiseLevelState
         )
         hideNoiseChangeProgressAnimation(noiseLevelState)
-        noiseLevelProgress.setState(noiseLevelState)
+        binding.noiseLevelProgress.setState(noiseLevelState)
     }
 
     private fun setPreviousValue(noiseLevelState: Pair<ChangeState, Int?>) {
         noiseLevelState.second?.let {
-            noiseDetectionSeekBar.progress = it
+            binding.noiseDetectionSeekBar.progress = it
         }
     }
 
@@ -179,16 +182,14 @@ class ClientSettingsFragment : BaseFragment() {
                 )
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { _ ->
-                    view?.run {
-                        (this as? MotionLayout)?.transitionToStart()
-                    }
+                    (binding.root as? MotionLayout)?.transitionToStart()
                 }
         }
     }
 
     private fun setupVoiceAnalysisRadioButtons(voiceAnalysisChangeState: Pair<ChangeState, VoiceAnalysisOption?>) {
-        machineLearningOption.isEnabled = voiceAnalysisChangeState.first != ChangeState.InProgress
-        noiseDetectionOption.isEnabled = voiceAnalysisChangeState.first != ChangeState.InProgress
+        binding.machineLearningOption.isEnabled = voiceAnalysisChangeState.first != ChangeState.InProgress
+        binding.noiseDetectionOption.isEnabled = voiceAnalysisChangeState.first != ChangeState.InProgress
         voiceAnalysisChangeState.second?.run {
             checkVoiceAnalysisOption(resolveOption(this))
         }
@@ -204,19 +205,19 @@ class ClientSettingsFragment : BaseFragment() {
     }
 
     private fun checkVoiceAnalysisOption(optionToSet: Int) {
-        voiceAnalysisRadioButtons.apply {
+        binding.voiceAnalysisRadioButtons.apply {
             setOnCheckedChangeListener(null)
-            voiceAnalysisRadioButtons.check(optionToSet)
+            check(optionToSet)
             setOnCheckedChangeListener(voiceAnalysisCheckChangedListener())
         }
     }
 
     private fun setupResetButton(resetInProgress: Boolean) {
-        resetAppBtn.apply {
+        binding.resetAppBtn.apply {
             isClickable = !resetInProgress
             text = if (resetInProgress) "" else resources.getString(R.string.reset)
         }
-        resetProgressBar.isVisible = resetInProgress
+        binding.resetProgressBar.isVisible = resetInProgress
     }
 
     private fun getPictureWithEasyPicker() {
@@ -230,7 +231,7 @@ class ClientSettingsFragment : BaseFragment() {
     private fun setupNoiseDetectionSeekbar() {
         blockDrawerMovement()
         viewDisposables += Observable.create<SeekBarState> { emitter ->
-            noiseDetectionSeekBar.setOnSeekBarChangeListener(object :
+            binding.noiseDetectionSeekBar.setOnSeekBarChangeListener(object :
                 SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(
                     seekBar: SeekBar?,
@@ -252,7 +253,7 @@ class ClientSettingsFragment : BaseFragment() {
                     )
                 }
             })
-            emitter.setCancellable { noiseDetectionSeekBar.setOnSeekBarChangeListener(null) }
+            emitter.setCancellable { binding.noiseDetectionSeekBar.setOnSeekBarChangeListener(null) }
         }
             .distinctUntilChanged()
             .observeOn(AndroidSchedulers.mainThread())
@@ -260,7 +261,7 @@ class ClientSettingsFragment : BaseFragment() {
     }
 
     private fun blockDrawerMovement() {
-        noiseDetectionSeekBar.setOnTouchListener { v, event ->
+        binding.noiseDetectionSeekBar.setOnTouchListener { v, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> // Disallow Drawer to intercept touch events.
                     v.parent.requestDisallowInterceptTouchEvent(true)
@@ -277,7 +278,7 @@ class ClientSettingsFragment : BaseFragment() {
         when (seekBarState) {
             is SeekBarState.StartTracking -> {
                 configurationViewModel.noiseLevelInitialValue = seekBarState.initialValue
-                (requireView() as? MotionLayout)?.transitionToEnd()
+                (binding.root as? MotionLayout)?.transitionToEnd()
             }
             is SeekBarState.EndTracking -> {
                 configurationViewModel.changeNoiseLevel(
@@ -286,7 +287,7 @@ class ClientSettingsFragment : BaseFragment() {
                 )
             }
             is SeekBarState.ProgressChange
-            -> noiseLevelProgress.setState(null to seekBarState.progress)
+            -> binding.noiseLevelProgress.setState(null to seekBarState.progress)
         }
     }
 
@@ -346,6 +347,9 @@ class ClientSettingsFragment : BaseFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         viewDisposables.dispose()
+        binding.noiseDetectionSeekBar.setOnSeekBarChangeListener(null)
+        binding.noiseDetectionSeekBar.setOnTouchListener(null)
+        _binding = null
     }
 
     companion object {

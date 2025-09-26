@@ -10,18 +10,21 @@ import androidx.navigation.fragment.findNavController
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.base.BaseFragment
 import co.netguru.baby.monitor.client.common.extensions.allPermissionsGranted
+import co.netguru.baby.monitor.client.databinding.FragmentConnectWifiBinding
 import co.netguru.baby.monitor.client.feature.analytics.Screen
-import kotlinx.android.synthetic.main.fragment_connect_wifi.*
 
 class ConnectWifiFragment : BaseFragment() {
     override val layoutResource = R.layout.fragment_connect_wifi
     override val screen: Screen = Screen.CONNECT_WIFI
 
     private val wifiReceiver by lazy { WifiReceiver() }
+    private var _binding: FragmentConnectWifiBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        wifiConnectionButton.setOnClickListener {
+        _binding = FragmentConnectWifiBinding.bind(view)
+        binding.wifiConnectionButton.setOnClickListener {
             if (wifiReceiver.isWifiConnected.value?.fetchData() == true) {
                 findNavController().navigate(
                     when {
@@ -36,8 +39,8 @@ class ConnectWifiFragment : BaseFragment() {
                 startActivity(Intent(Settings.ACTION_WIFI_SETTINGS))
             }
         }
-        wifiReceiver.isWifiConnected.observe(this, Observer { isConnected ->
-            wifiConnectionButton.text = if (isConnected?.fetchData() == true) {
+        wifiReceiver.isWifiConnected.observe(viewLifecycleOwner, Observer { isConnected ->
+            binding.wifiConnectionButton.text = if (isConnected?.fetchData() == true) {
                 getString(R.string.connect_wifi_connected)
             } else {
                 getString(R.string.connect_to_wi_fi)
@@ -53,6 +56,11 @@ class ConnectWifiFragment : BaseFragment() {
     override fun onPause() {
         super.onPause()
         requireContext().unregisterReceiver(wifiReceiver)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {

@@ -11,9 +11,9 @@ import androidx.lifecycle.ViewModelProviders
 import co.netguru.baby.monitor.client.BuildConfig
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.base.BaseFragment
+import co.netguru.baby.monitor.client.databinding.FragmentServerSettingsBinding
 import co.netguru.baby.monitor.client.feature.communication.websocket.MessageController
 import co.netguru.baby.monitor.client.feature.server.ServerViewModel
-import kotlinx.android.synthetic.main.fragment_server_settings.*
 import javax.inject.Inject
 
 class ServerSettingsFragment : BaseFragment() {
@@ -31,9 +31,12 @@ class ServerSettingsFragment : BaseFragment() {
     private val settingsViewModel by lazy {
         ViewModelProviders.of(this, factory)[SettingsViewModel::class.java]
     }
+    private var _binding: FragmentServerSettingsBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentServerSettingsBinding.bind(view)
         setupViews()
         setupObservers()
     }
@@ -48,29 +51,29 @@ class ServerSettingsFragment : BaseFragment() {
     }
 
     private fun setupViews() {
-        sendRecordingsSw.isChecked = configurationViewModel.isUploadEnabled()
+        binding.sendRecordingsSw.isChecked = configurationViewModel.isUploadEnabled()
 
-        rateUsBtn.setOnClickListener {
+        binding.rateUsBtn.setOnClickListener {
             settingsViewModel.openMarket(requireActivity())
         }
 
-        secondPartTv.setOnClickListener {
+        binding.secondPartTv.setOnClickListener {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.company_url))))
         }
 
-        closeIbtn.setOnClickListener {
+        binding.closeIbtn.setOnClickListener {
             serverViewModel.toggleDrawer(false)
         }
 
-        resetAppBtn.setOnClickListener {
+        binding.resetAppBtn.setOnClickListener {
             resetApp()
         }
 
-        sendRecordingsSw.setOnCheckedChangeListener { _, isChecked ->
+        binding.sendRecordingsSw.setOnCheckedChangeListener { _, isChecked ->
             configurationViewModel.setUploadEnabled(isChecked)
         }
 
-        version.text =
+        binding.version.text =
             getString(R.string.version, BuildConfig.VERSION_NAME, BuildConfig.VERSION_CODE)
     }
 
@@ -79,10 +82,16 @@ class ServerSettingsFragment : BaseFragment() {
     }
 
     private fun setupResetButton(resetInProgress: Boolean) {
-        resetAppBtn.apply {
+        binding.resetAppBtn.apply {
             isClickable = !resetInProgress
             text = if (resetInProgress) "" else resources.getString(R.string.reset)
         }
-        resetProgressBar.isVisible = resetInProgress
+        binding.resetProgressBar.isVisible = resetInProgress
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding.sendRecordingsSw.setOnCheckedChangeListener(null)
+        _binding = null
     }
 }

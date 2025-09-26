@@ -14,12 +14,12 @@ import co.netguru.baby.monitor.client.common.PermissionUtils
 import co.netguru.baby.monitor.client.common.base.BaseFragment
 import co.netguru.baby.monitor.client.common.extensions.getColor
 import co.netguru.baby.monitor.client.common.extensions.observeNonNull
+import co.netguru.baby.monitor.client.databinding.FragmentClientDashboardBinding
 import co.netguru.baby.monitor.client.feature.analytics.Screen
 import co.netguru.baby.monitor.client.feature.client.home.ClientHomeViewModel
 import com.bumptech.glide.request.RequestOptions
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.fragment_client_dashboard.*
 import javax.inject.Inject
 
 class ClientDashboardFragment : BaseFragment() {
@@ -31,6 +31,8 @@ class ClientDashboardFragment : BaseFragment() {
     private val viewModel by lazy {
         ViewModelProviders.of(requireActivity(), factory)[ClientHomeViewModel::class.java]
     }
+    private var _binding: FragmentClientDashboardBinding? = null
+    private val binding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,15 +41,16 @@ class ClientDashboardFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentClientDashboardBinding.bind(view)
         setupObservers()
-        clientHomeActivityLogIbtn.setOnClickListener {
+        binding.clientHomeActivityLogIbtn.setOnClickListener {
             findNavController().navigate(R.id.actionDashboardToLogs)
         }
     }
 
     private fun setupObservers() {
         viewModel.selectedChildLiveData.observeNonNull(viewLifecycleOwner) { child ->
-            clientHomeBabyNameTv.apply {
+            binding.clientHomeBabyNameTv.apply {
                 if (child.name.isNullOrBlank()) {
                     text = getString(R.string.your_baby_name)
                     setTextColor(getColor(R.color.accent))
@@ -61,8 +64,8 @@ class ClientDashboardFragment : BaseFragment() {
                 GlideApp.with(requireContext())
                     .load(child.image)
                     .apply(RequestOptions.circleCropTransform())
-                    .into(clientHomeBabyIv)
-                clientHomeBabyIv.setPadding(NO_PADDING)
+                    .into(binding.clientHomeBabyIv)
+                binding.clientHomeBabyIv.setPadding(NO_PADDING)
             }
         }
         viewModel.selectedChildAvailability.observeNonNull(viewLifecycleOwner) { childAvailable ->
@@ -75,17 +78,17 @@ class ClientDashboardFragment : BaseFragment() {
     }
 
     private fun showClientConnected() {
-        clientConnectionStatusTv.text = getString(R.string.devices_connected)
-        clientConnectionStatusPv.start()
-        clientHomeLiveCameraIbtn.setOnClickListener {
+        binding.clientConnectionStatusTv.text = getString(R.string.devices_connected)
+        binding.clientConnectionStatusPv.start()
+        binding.clientHomeLiveCameraIbtn.setOnClickListener {
             requestMicrophonePermission()
         }
     }
 
     private fun showClientDisconnected() {
-        clientConnectionStatusTv.text = getString(R.string.devices_disconnected)
-        clientConnectionStatusPv.stop()
-        clientHomeLiveCameraIbtn.setOnClickListener {
+        binding.clientConnectionStatusTv.text = getString(R.string.devices_disconnected)
+        binding.clientConnectionStatusPv.stop()
+        binding.clientHomeLiveCameraIbtn.setOnClickListener {
             Toast.makeText(
                 requireContext(),
                 getString(R.string.child_not_available),
@@ -103,13 +106,20 @@ class ClientDashboardFragment : BaseFragment() {
 
     private fun showRationaleSnackbar() {
         Snackbar.make(
-            requireView(),
+            binding.root,
             getString(R.string.parent_microphone_permission),
             Snackbar.LENGTH_SHORT
         )
             .setAction(getString(R.string.check_again)) { requestMicrophonePermission() }
             .setDuration(BaseTransientBottomBar.LENGTH_LONG)
             .show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding.clientConnectionStatusPv.stop()
+        binding.clientHomeLiveCameraIbtn.setOnClickListener(null)
+        _binding = null
     }
 
     override fun onRequestPermissionsResult(

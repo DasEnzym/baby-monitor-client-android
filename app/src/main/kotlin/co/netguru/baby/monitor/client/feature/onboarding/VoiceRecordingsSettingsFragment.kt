@@ -7,9 +7,9 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.fragment.findNavController
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.base.BaseFragment
+import co.netguru.baby.monitor.client.databinding.FragmentVoiceRecordingsSettingBinding
 import co.netguru.baby.monitor.client.feature.analytics.Screen
 import co.netguru.baby.monitor.client.feature.settings.ConfigurationViewModel
-import kotlinx.android.synthetic.main.fragment_voice_recordings_setting.*
 import javax.inject.Inject
 
 class VoiceRecordingsSettingsFragment : BaseFragment() {
@@ -20,14 +20,22 @@ class VoiceRecordingsSettingsFragment : BaseFragment() {
     lateinit var factory: ViewModelProvider.Factory
 
     private val viewModel by lazy { ViewModelProviders.of(this, factory)[ConfigurationViewModel::class.java] }
+    private var _binding: FragmentVoiceRecordingsSettingBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        featureDNextBtn.setOnClickListener {
+        _binding = FragmentVoiceRecordingsSettingBinding.bind(view)
+        binding.featureDNextBtn.setOnClickListener {
             findNavController().navigate(R.id.featureDToConnecting)
         }
-        featureDSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+        binding.featureDSwitch.setOnCheckedChangeListener { _, isChecked ->
             viewModel.setUploadEnabled(isChecked)
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

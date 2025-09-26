@@ -5,20 +5,28 @@ import android.view.View
 import androidx.navigation.fragment.findNavController
 import co.netguru.baby.monitor.client.R
 import co.netguru.baby.monitor.client.common.base.BaseFragment
+import co.netguru.baby.monitor.client.databinding.FragmentDeniedPermissionBinding
 import co.netguru.baby.monitor.client.feature.analytics.Screen
-import kotlinx.android.synthetic.main.fragment_denied_permission.*
 
 class PermissionDenied : BaseFragment() {
     override val layoutResource = R.layout.fragment_denied_permission
     override val screen: Screen = Screen.PERMISSION_DENIED
+    private var _binding: FragmentDeniedPermissionBinding? = null
+    private val binding get() = _binding!!
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        deniedRetryButtonCtrl.setOnClickListener {
+        _binding = FragmentDeniedPermissionBinding.bind(view)
+        binding.deniedRetryButtonCtrl.setOnClickListener {
             findNavController().popBackStack(R.id.connectWiFi, false)
         }
-        deniedSureButtonCtrl.setOnClickListener {
+        binding.deniedSureButtonCtrl.setOnClickListener {
             requireActivity().finish()
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
