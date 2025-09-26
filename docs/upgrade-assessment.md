@@ -1,19 +1,21 @@
 # Dependency Upgrade Assessment
 
 ## Current build tooling
-- The project still relies on Android Gradle Plugin 3.5.3 with Gradle 5.4.1 and Kotlin 1.3.61. These versions are defined in the root `build.gradle` and the Gradle wrapper configuration.【F:build.gradle†L5-L22】【F:gradle/wrapper/gradle-wrapper.properties†L1-L7】
-- The `app` module continues to use the legacy `kotlin-android-extensions` plugin to access synthetic view bindings.【F:app/build.gradle†L3-L6】
+- The project now builds with Android Gradle Plugin 8.4.2 on top of Gradle 8.14.3 and Kotlin 1.9.24, as defined in the root `build.gradle` and the Gradle wrapper configuration.【F:build.gradle†L5-L23】【F:gradle/wrapper/gradle-wrapper.properties†L1-L7】
+- View Binding is enabled for the `app` module, replacing the previously used synthetic bindings from `kotlin-android-extensions`.【F:app/build.gradle†L1-L64】
+- Firebase Crashlytics and Performance Monitoring already rely on the modern Gradle plugins supplied by Google, so no Fabric-era tooling remains in the buildscript.【F:build.gradle†L15-L22】【F:app/build.gradle†L1-L10】
 
-## Why the requested dependency bumps fail today
-- Jetpack Lifecycle 2.7.0, Navigation 2.7.x and Room 2.6.x are compiled with Kotlin 1.9 metadata. Kotlin 1.3.61 (the version bundled with AGP 3.5.3) cannot read this metadata, so the compiler aborts with `Unsupported [Kotlin] metadata version` errors. Raising the Kotlin compiler to >= 1.9 requires upgrading the Android Gradle Plugin and Gradle wrapper first, which is a large, cross-cutting change.
-- Android Gradle Plugin 3.5.3 does not support the modern Crashlytics and Firebase Performance Gradle plugins that ship with the Firebase BOM. Fabric's deprecated Crashlytics plugin is still applied through the `io.fabric` Gradle plugin in the `app` module.【F:app/build.gradle†L7-L11】 Migrating to the Firebase Crashlytics plugin is blocked until the build system itself is updated.
-- The project relies extensively on Kotlin synthetic view bindings (`kotlinx.android.synthetic`).【F:app/src/main/kotlin/co/netguru/baby/monitor/client/feature/client/home/ClientHomeActivity.kt†L25-L28】 Kotlin removed this feature in 1.8+, so upgrading the Kotlin compiler would require replacing every synthetic usage with View Binding or `findViewById` across the codebase.
-- Several legacy libraries (e.g. TensorFlow 1.13, EasyImage 1.3.1, RxJava 2) were chosen because they integrate with the existing reactive + synthetic architecture. Replacing them with their modern counterparts (TensorFlow Lite, EasyImage 3.x, RxJava 3) demands API migrations throughout the app, not just dependency bumps.
-- Running Gradle tasks on modern JDKs already fails with the current toolchain (`Gradle 5.4.1` + `JDK 21` results in `Could not initialize class org.codehaus.groovy.runtime.InvokerHelper`). Aligning the tooling would require standardising on a supported JDK (e.g. 11) and upgrading Gradle together with AGP.
+## Status of the requested dependency bumps
+- Lifecycle 2.7.0, Navigation 2.7.7 and Room 2.6.1 are already declared in `buildsystem/dependencies.gradle`, satisfying the versions that previously triggered compiler metadata errors.【F:buildsystem/dependencies.gradle†L1-L53】
+- Retrofit 2.11.0, OkHttp 4.12.0 and Firebase BOM 33.4.0 are likewise configured, so the networking and Firebase stacks are aligned with the requested releases.【F:buildsystem/dependencies.gradle†L1-L44】
+
+## Remaining modernization considerations
+- The reactive layer still depends on RxJava 2.x (including RxKotlin and RxAndroid), which is no longer maintained. Migrating to RxJava 3 or Kotlin Coroutines would require refactoring observers, schedulers and Room integrations throughout the app.【F:buildsystem/dependencies.gradle†L17-L24】【F:buildsystem/dependencies.gradle†L37-L52】
+- Dependency injection continues to use Dagger 2.25.2 and the legacy `AndroidSupportInjectionModule`. Updating to a current Dagger release or adopting Hilt would involve regenerating components and adjusting the existing module graph.【F:buildsystem/dependencies.gradle†L1-L32】【F:app/src/main/kotlin/co/netguru/baby/monitor/client/application/di/ApplicationComponent.kt†L1-L20】
+- The codebase still ships with JetBrains Anko helpers, a library that has been deprecated for several years. Replacing the remaining usages (e.g. notification helpers) with standard Android APIs would remove another unmaintained dependency.【F:buildsystem/dependencies.gradle†L6-L20】【F:app/src/main/kotlin/co/netguru/baby/monitor/client/common/NotificationHandler.kt†L1-L40】
 
 ## Suggested migration path
-1. Modernise the build system: update the Gradle wrapper to 8.x, bump AGP to 8.x, and raise Kotlin to ≥ 1.9.20. This must include removing `kotlin-android-extensions` in favour of View Binding.
-2. After the build infrastructure is current, incrementally migrate feature modules away from deprecated libraries (RxJava 3 / Kotlin Coroutines, Firebase BOM + Crashlytics plugin, TensorFlow Lite, updated EasyImage APIs, etc.).
-3. Only once the above structural changes land can the requested dependency versions (Lifecycle ≥ 2.7, Room ≥ 2.6, Navigation ≥ 2.7, Retrofit 2.9, OkHttp 4.12, Firebase BOM, etc.) be introduced without breaking the build.
-
-Because these prerequisite migrations are extensive and cross-cutting, the dependency refresh cannot be delivered safely in a single step without first modernising the build stack.
+1. Plan and execute the reactive layer migration (RxJava 2 → RxJava 3 or Coroutines), ensuring Room, networking and UI observers are updated in tandem.
+2. Modernise dependency injection by upgrading to the latest Dagger release or Hilt, removing the reliance on the deprecated Android support injection artifacts.
+3. Eliminate Anko by rewriting the remaining helper calls with platform APIs, then perform a dependency sweep to confirm no other abandoned libraries linger.
+4. Once the above refactors land, re-run the dependency updates toolchain to verify there are no additional compatibility issues before attempting further library bumps.
