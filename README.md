@@ -66,7 +66,9 @@ Baby Guard is a free, offline, and cross-platform application that replaces elec
 | Firebase Cloud Messaging Server Key | FirebaseCloudMessagingServerKey | FIREBASE_CLOUD_MESSAGING_SERVER_KEY |
 
 #### Secrets
-Follow [this guide](https://netguru.atlassian.net/wiki/pages/viewpage.action?pageId=33030753) 
+Follow [this guide](https://netguru.atlassian.net/wiki/pages/viewpage.action?pageId=33030753).
+
+For local development, copy the provided `secret.properties.sample` file to `secret.properties` and replace the placeholder values with the real credentials before building the app.
 
 #### Supported devices
 SDK 21+ (5.0 Lollipop)
